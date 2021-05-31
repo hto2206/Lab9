@@ -28,14 +28,14 @@
 <body>
   <fieldset>
     <legend>Error Calculator</legend>
-    <input type="number" name="first-num" id="first-num" />
+    <input type="string" name="first-num" id="first-num" />
     <select name="operator" id="operator">
       <option>+</option>
       <option>-</option>
       <option>*</option>
       <option>/</option>
     </select>
-    <input type="number" name="second-num" id="second-num" />
+    <input type="string" name="second-num" id="second-num" />
     <button id="calculate">Calculate</button>
     <br />
     <output></output>
@@ -55,18 +55,120 @@
     <button>Trigger a Global Error</button>
   </section>
 
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
   <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "819812233d10456493b3d550ff88d2d0"
+    });
+
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      var string = msg.toLowerCase();
+      var substring = "script error";
+      if (string.indexOf(substring) > -1){
+        console.log('Script Error');
+      } else {
+        var message = [
+          'Message: ' + msg,
+          'URL: ' + url,
+          'Line: ' + lineNo,
+          'Column: ' + columnNo,
+          'Error object: ' + JSON.stringify(error)
+        ].join(' - ');
+        console.log(message);
+      }
+      return false;
+    };
+
+    class DivZero extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "DivisionByZero";
+      }
+    }
+
     let calculateBtn = document.querySelector('#calculate');
     calculateBtn.addEventListener('click', () => {
       let output = document.querySelector('output');
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      if(eval(`${secondNum}`) == 0 && operator == '/'){
+          throw new DivZero("You cannot divide by 0");
+      }
+      try{
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      } catch (error) {
+          console.log("Something is wrong");
+          throw error;
+      } finally {
+          alert("Calculated, unless there is an error");
+      }
     });
-
+    TrackJS.track('Testing TrackJS!');
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
-    // TODO - Make buttons functional
+    const label = 'Clicked Group Start button:'
+    const label2 = 'Group Collapsed'
+    errorBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        switch(btn){
+          case errorBtns[0]:
+            console.log("Clicked Console Log Demo button");
+            break;
+          case errorBtns[1]:
+            console.error("Clicked Console Error Demo button");
+            break;
+          case errorBtns[2]:
+            console.dir(document.head);
+            break;
+          case errorBtns[3]:
+            console.dirxml(document);
+            break;
+          case errorBtns[4]:
+            console.group(label);
+            console.info("Nope")
+            console.groupCollapsed(label2);
+            console.info('Never gonna');
+            console.info('Give you');
+            console.info('Up');
+            break;
+          case errorBtns[5]:
+            console.groupEnd(label);
+            console.groupEnd(label2);
+            break;
+          case errorBtns[6]:
+            console.table([
+              {
+                first: 'Spa',
+                last: 'In',
+              },
+              {
+                first: 'Ni',
+                last: 'Qui',
+              },
+              {
+                first: 'Sh',
+                last: 'Sition',
+              }
+            ]);
+            break;
+          case errorBtns[7]:
+            console.time();
+            break;
+          case errorBtns[8]:
+            console.timeEnd();
+            break;
+          case errorBtns[9]:
+            const me = () => { told(); };
+            const told = () => { once(); };
+            const once = () => { Somebody(); };
+            const Somebody = () => { console.trace(); };
+            me();
+            break;
+          case errorBtns[10]:
+            throw "Global error button pressed";
+        }
+      });
+    });
   </script>
 </body>
 </html>
